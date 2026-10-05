@@ -99,6 +99,11 @@ curl localhost:8000/users
 curl localhost:8000/users/1
 ```
 
+> **Windows (Git Bash / cmd / PowerShell).** Консоль может отправить кириллицу в `curl -d` не в UTF-8,
+> тогда сервер ответит `400 Invalid JSON body: Malformed UTF-8`. Решения: выполнить `chcp 65001`,
+> либо положить JSON в файл (сохранённый в UTF-8) и отправить `curl --data-binary @body.json`,
+> либо в тестовых запросах использовать латиницу.
+
 ## Лицензия
 
 MIT

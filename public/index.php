@@ -53,8 +53,15 @@ try {
         // POST /users {"name": "...", "email": "..."} — create (Eloquent)
         case $method === 'POST' && $path === '/users':
             $input = json_decode((string) file_get_contents('php://input'), true);
-            $name = is_array($input) ? trim((string) ($input['name'] ?? '')) : '';
-            $email = is_array($input) ? trim((string) ($input['email'] ?? '')) : '';
+            if (!is_array($input)) {
+                json_response([
+                    'error' => 'Invalid JSON body: ' . json_last_error_msg(),
+                    'hint' => 'The body must be valid UTF-8 JSON (on Windows send it from a file or run `chcp 65001` first)',
+                ], 400);
+                break;
+            }
+            $name = trim((string) ($input['name'] ?? ''));
+            $email = trim((string) ($input['email'] ?? ''));
 
             $errors = [];
             if ($name === '') {
