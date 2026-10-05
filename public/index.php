@@ -11,7 +11,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $app = Application::boot(dirname(__DIR__));
 
 // Log every incoming request + the response body we send back (channel "http").
-HttpLogger::register($app->loggers->make('http'), $app->config['logging']['http']);
+HttpLogger::register($app->httpLog, $app->config['logging']['http']);
 
 header('X-Request-Id: ' . $app->loggers->requestId());
 
@@ -79,7 +79,8 @@ try {
             json_response(['error' => 'Not found'], 404);
     }
 } catch (Throwable $e) {
-    $app->log->error($e->getMessage(), ['exception' => $e]);
+    // CRITICAL = unexpected exception (see Monolog "Log Levels")
+    $app->log->critical($e->getMessage(), ['exception' => $e]);
     json_response(
         ['error' => 'Internal Server Error'] + ($app->config['app']['debug'] ? ['message' => $e->getMessage()] : []),
         500,

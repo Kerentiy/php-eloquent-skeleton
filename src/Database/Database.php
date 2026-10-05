@@ -34,7 +34,7 @@ final class Database
         $events = new Dispatcher($container);
         if ($queryLogger !== null) {
             $events->listen(QueryExecuted::class, static function (QueryExecuted $query) use ($queryLogger): void {
-                $queryLogger->debug('SQL: {sql}', [
+                $queryLogger->info('SQL: {sql}', [
                     'sql' => $query->sql,
                     'bindings' => $query->bindings,
                     'time_ms' => $query->time,

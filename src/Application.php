@@ -25,6 +25,7 @@ final class Application
         public readonly array $config,
         public readonly LoggerFactory $loggers,
         public readonly Logger $log,
+        public readonly Logger $httpLog,
         public readonly Capsule $db,
     ) {
     }
@@ -43,12 +44,13 @@ final class Application
 
         $loggers = new LoggerFactory($config['logging']);
         $log = $loggers->make('app');
+        $httpLog = $log->withName('http'); // same handler and processors, different channel
 
         $db = Database::boot(
             $config['database'],
             $config['logging']['log_queries'] ? $log : null,
         );
 
-        return new self($basePath, $config, $loggers, $log, $db);
+        return new self($basePath, $config, $loggers, $log, $httpLog, $db);
     }
 }

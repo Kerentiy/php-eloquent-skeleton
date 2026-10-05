@@ -12,13 +12,19 @@ use Monolog\Processor\PsrLogMessageProcessor;
 use Monolog\Processor\UidProcessor;
 
 /**
- * Builds Monolog loggers. All channels share one UidProcessor, so every record
- * written while handling a single HTTP request carries the same "uid"
- * (it is also returned to the client as the X-Request-Id header).
+ * Monolog setup following https://seldaek.github.io/monolog/doc/01-usage.html
+ *
+ *  - one Logger with a handler stack (Core Concepts / Configuring a logger);
+ *  - a Formatter attached to the handler (Customizing the log format);
+ *  - Processors pushed on the logger to enrich every record (Using processors);
+ *  - extra channels created with Logger::withName() - they share the handler,
+ *    so all channels are written to one file and can be filtered with grep
+ *    (Leveraging channels).
  */
 final class LoggerFactory
 {
     private const LINE_FORMAT = "[%datetime%] %channel%.%level_name% [%extra.uid%]: %message% %context% %extra%\n";
+    private const DATE_FORMAT = 'Y-m-d H:i:s.v';
 
     private readonly UidProcessor $uid;
 
@@ -28,31 +34,38 @@ final class LoggerFactory
         $this->uid = new UidProcessor(16);
     }
 
+    /** Unique id of the current request; it is added to every record as extra.uid. */
     public function requestId(): string
     {
         return $this->uid->getUid();
     }
 
-    /** Creates a daily-rotated logger writing to {path}/{channel}.log */
-    public function make(string $channel): Logger
+    /** Creates the main logger (channel $channel) writing to {path}/app-YYYY-MM-DD.log */
+    public function make(string $channel = 'app'): Logger
     {
+        // Handler: daily rotation, keeps the last max_files files.
         $handler = new RotatingFileHandler(
-            filename: sprintf('%s/%s.log', $this->config['path'], $channel),
+            filename: $this->config['path'] . '/app.log',
             maxFiles: (int) $this->config['max_files'],
             level: Level::fromName($this->config['level']),
             filePermission: 0664,
         );
+
+        // Formatter: attached to the handler.
         $handler->setFormatter(new LineFormatter(
             format: self::LINE_FORMAT,
-            dateFormat: 'Y-m-d H:i:s.v',
+            dateFormat: self::DATE_FORMAT,
             allowInlineLineBreaks: true,
             ignoreEmptyContextAndExtra: true,
         ));
 
-        return new Logger(
-            name: $channel,
-            handlers: [$handler],
-            processors: [new PsrLogMessageProcessor(removeUsedContextFields: true), $this->uid],
-        );
+        $logger = new Logger($channel);
+        $logger->pushHandler($handler);
+
+        // Processors: add extra data to every record, of every channel derived via withName().
+        $logger->pushProcessor(new PsrLogMessageProcessor(removeUsedContextFields: true)); // {placeholders}
+        $logger->pushProcessor($this->uid);                                                 // extra.uid
+
+        return $logger;
     }
 }
