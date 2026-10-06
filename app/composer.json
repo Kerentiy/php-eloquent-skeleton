@@ -1,11 +1,11 @@
 {
-    "name": "example/php-eloquent-skeleton",
-    "description": "PHP skeleton: Eloquent ORM (standalone) + migrator + Monolog + HTTP request/response logging",
+    "name": "devops-course/app",
+    "description": "Учебное приложение: nginx + php-fpm + PostgreSQL, Eloquent, миграции, Monolog",
     "type": "project",
     "license": "MIT",
     "require": {
-        "php": "^8.2",
-        "ext-pdo": "*",
+        "php": ">=8.5",
+        "ext-pdo_pgsql": "*",
         "illuminate/database": "^12.0",
         "illuminate/events": "^12.0",
         "illuminate/filesystem": "^12.0",
@@ -18,8 +18,7 @@
         }
     },
     "scripts": {
-        "migrate": "@php bin/migrate migrate",
-        "serve": "@php -S 0.0.0.0:8000 -t public"
+        "migrate": "@php bin/migrate migrate"
     },
     "config": {
         "optimize-autoloader": true,

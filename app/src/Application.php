@@ -40,8 +40,6 @@ final class Application
             'logging' => require $basePath . '/config/logging.php',
         ];
 
-        date_default_timezone_set('UTC');
-
         $loggers = new LoggerFactory($config['logging']);
         $log = $loggers->make('app');
         $httpLog = $log->withName('http'); // same handler and processors, different channel
